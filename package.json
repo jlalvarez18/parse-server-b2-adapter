@@ -1,0 +1,27 @@
+{
+  "name": "parse-server-b2-adapter",
+  "version": "1.0.0",
+  "description": "Backblaze B2 adapter for parse-server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jlalvarez18/parse-server-b2-adapter.git"
+  },
+  "keywords": [
+    "parse-server",
+    "b2",
+    "backblaze"
+  ],
+  "author": "Juan Alvarez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jlalvarez18/parse-server-b2-adapter/issues"
+  },
+  "homepage": "https://github.com/jlalvarez18/parse-server-b2-adapter#readme",
+  "dependencies": {
+    "backblaze-b2": "^1.0.2"
+  }
+}
