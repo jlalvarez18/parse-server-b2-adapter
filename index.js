@@ -120,19 +120,13 @@ B2Adapter.prototype.getFileData = function(filename) {
     })
 }
 
-B2Adapter.prototype.getFileLocation = async function(config, filename) {
+B2Adapter.prototype.getFileLocation = function(config, filename) {
     filename = encodeURIComponent(filename)
 
     if (this._directAccess) {
         var name = this._bucketPrefix + filename
 
-        try {
-            await this.createBucket()
-
-            return '${this._downloadUrl}/file/${this._bucket}/${name}'
-        } catch (e) {
-            throw e
-        }
+        return '${this._b2Client.downloadUrl}/file/${this._bucket}/${name}'
     }
 
     return (config.mount + '/files/' + config.applicationId + '/' + filename);
