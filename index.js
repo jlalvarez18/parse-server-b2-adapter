@@ -27,7 +27,7 @@ function B2Adapter(options) {
     this._hasBucket = false
 }
 
-B2Adapter.prototype.createBucket = function () {
+B2Adapter.prototype.createBucket = function() {
     var promise
 
     if (this._hasBucket) {
