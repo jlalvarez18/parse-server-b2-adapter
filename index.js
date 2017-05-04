@@ -1,3 +1,5 @@
+'use strict';
+
 var B2 = require('backblaze-b2')
 
 function requiredValueOrFromEnv(options, key, envKey) {
