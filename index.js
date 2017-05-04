@@ -35,11 +35,11 @@ B2Adapter.prototype.createBucket = function() {
     if (this._hasBucket) {
         promise = this._b2Client.authorize()
     } else {
-        promise = Promise.resolve().then(function() {
+        promise = Promise.resolve().then(() => {
             return this._b2Client.authorize()
-        }).then(function() {
+        }).then(() => {
             return this._b2Client.createBucket(this._bucket, 'allPublic')
-        }).then(function(result) {
+        }).then((result) => {
             var bucketId = result.bucketId
             var downloadUrl = result.downloadUrl
 
@@ -57,9 +57,11 @@ B2Adapter.prototype.createBucket = function() {
 }
 
 B2Adapter.prototype.createFile = function(filename, data, contentType) {
-    return this.createBucket().then(function() {
+    return Promise.resolve().then(() => {
+        return this.createBucket()
+    }).then(() => {
         return this._b2Client.getUploadUrl(this._bucketId)
-    }).then(function(result) {
+    }).then((result) => {
         var name = this._bucketPrefix + filename
 
         return this._b2Client.uploadFile({
@@ -75,14 +77,16 @@ B2Adapter.prototype.createFile = function(filename, data, contentType) {
 B2Adapter.prototype.deleteFile = function(filename) {
     var name = this._bucketPrefix + filename
 
-    return this.createBucket().then(function() {
+    return Promise.resolve().then(() => {
+        return this.createBucket()
+    }).then(() => {
         return this._b2Client.listFileNames({
             bucketId: this._bucketId,
             maxFileCount: 1,
             delimiter: '',
             prefix: prefix
         })
-    }).then(function(results) {
+    }).then((results) => {
         var files = results.files
 
         for (var i = 0; i < files.length; i++) {
@@ -93,7 +97,7 @@ B2Adapter.prototype.deleteFile = function(filename) {
                 return file.fileId
             }
         }
-    }).then(function(fileId) {
+    }).then((fileId) => {
         if (fileId == null) {
             return
         }
@@ -108,7 +112,9 @@ B2Adapter.prototype.deleteFile = function(filename) {
 B2Adapter.prototype.getFileData = function(filename) {
     var name = this._bucketPrefix + filename
 
-    return this.createBucket().then(function() {
+    return Promise.resolve().then(() => {
+        return this.createBucket()
+    }).then(() => {
         return this._b2Client.downloadFileByName({
             bucketName: this._bucket,
             fileName: name
