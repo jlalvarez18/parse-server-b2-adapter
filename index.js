@@ -18,7 +18,6 @@ function B2Adapter(options) {
     this._bucket = requiredValueOrFromEnv(options, 'bucket', 'B2_BUCKET')
 
     this._bucketPrefix = fromEnvironmentOrDefault(options, 'bucketPrefix', 'B2_BUCKET_PREFIX', '')
-    this._directAccess = fromEnvironmentOrDefault(options, 'directAccess', 'B2_DIRECT_ACCESS', false)
     this._globalCacheControl = fromEnvironmentOrDefault(options, 'globalCacheControl', 'B2_GLOBAL_CACHE_CONTROL', null)
 
     this._b2Client = new B2({
@@ -124,12 +123,6 @@ B2Adapter.prototype.getFileData = function(filename) {
 
 B2Adapter.prototype.getFileLocation = function(config, filename) {
     filename = encodeURIComponent(filename)
-
-    if (this._directAccess) {
-        var name = this._bucketPrefix + filename
-
-        return '${this._b2Client.downloadUrl}/file/${this._bucket}/${name}'
-    }
 
     return (config.mount + '/files/' + config.applicationId + '/' + filename);
 }
