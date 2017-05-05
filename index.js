@@ -8,6 +8,8 @@ function requiredValueOrFromEnv(options, key, envKey) {
     if (!value) {
       throw `B2Adapter requires an ${key}`;
     }
+
+    return value
 }
 
 function fromEnvironmentOrDefault(options, key, envKey, defaultValue) {
@@ -20,9 +22,12 @@ function B2Adapter(options) {
     this._bucketPrefix = fromEnvironmentOrDefault(options, 'bucketPrefix', 'B2_BUCKET_PREFIX', '')
     this._globalCacheControl = fromEnvironmentOrDefault(options, 'globalCacheControl', 'B2_GLOBAL_CACHE_CONTROL', null)
 
+    var accountId = requiredValueOrFromEnv(options, 'accountId', 'B2_ACCOUNT_ID')
+    var appKey = requiredValueOrFromEnv(options, 'applicationKey', 'B2_APPLICATION_KEY')
+
     this._b2Client = new B2({
-        accountId: requiredValueOrFromEnv(options, 'accountId', 'B2_ACCOUNT_ID'),
-        applicationKey: requiredValueOrFromEnv(options, 'applicationKey', 'B2_APPLICATION_KEY')
+        accountId: accountId,
+        applicationKey: appKey
     })
 
     this._hasBucket = false
