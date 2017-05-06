@@ -1,5 +1,7 @@
 'use strict';
 
+var https = require('https')
+
 var B2 = require('backblaze-b2')
 
 function requiredValueOrFromEnv(options, key, envKey) {
@@ -98,7 +100,7 @@ B2Adapter.prototype.createFile = function(filename, data, contentType) {
 
         var name = this._bucketPrefix + filename
 
-        console.log('Uploading file with name: ' + name)
+        console.log(`Uploading file with name: ${name} and type: ${contentType}`)
 
         return this._b2Client.uploadFile({
             uploadUrl: uploadUrl,
@@ -153,20 +155,55 @@ B2Adapter.prototype.deleteFile = function(filename) {
 }
 
 B2Adapter.prototype.getFileData = function(filename) {
-    console.log('Called getFileData()')
-
     var name = this._bucketPrefix + filename
+
+    console.log(`Called getFileData() with filename: ${name}`)
 
     return Promise.resolve().then(() => {
         return this.createBucket()
     }).then(() => {
-        console.log('Downloading file with name: ' + name)
+        var urlString = `${this._b2Client.downloadUrl}/file/${this._bucket}/${name}`
 
-        return this._b2Client.downloadFileByName({
-            bucketName: this._bucket,
-            fileName: name
+        console.log(`Downloading file with name: ${name}, ${this._bucket} and url: ${urlString}`)
+
+        return new Promise((resolve, reject) => {
+            https.get(urlString, function(res) {
+                console.log(res);
+                var data = []; // List of Buffer objects
+
+            	res.on('data', function(chunk) {
+            		data.push(chunk); // Append Buffer object
+            	});
+
+            	res.on('end', function() {
+            		var buffer = Buffer.concat(data); // Make one large Buffer of it
+
+                    resolve(buffer)
+            	})
+
+                res.on('error', function(err) {
+                    console.log('Error during HTTP request');
+                    console.log(err.message);
+
+                    reject(err)
+                })
+            })
         })
     })
+
+    // For some reason, using downloadFileByName() returns a corrupted buffer
+    // return this._b2Client.downloadFileByName({
+    //     bucketName: this._bucket,
+    //     fileName: name
+    // }).then((response) => {
+    //     console.log(response.headers);
+    //     console.log(response.status);
+    //
+    //     // console.log(response.data.toString('base64'))
+    //
+    //     var data = Buffer.from(response.data)
+    //     return Promise.resolve(data)
+    // })
 }
 
 B2Adapter.prototype.getFileLocation = function(config, filename) {
