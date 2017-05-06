@@ -94,7 +94,7 @@ B2Adapter.prototype.createFile = function(filename, data, contentType) {
         var uploadUrl = result.data.uploadUrl
         var authToken = result.data.authorizationToken
 
-        console.log('Received uploadUrl: ${uploadUrl} and authToken: ${authToken}')
+        console.log(`Received uploadUrl: ${uploadUrl} and authToken: ${authToken}`)
 
         var name = this._bucketPrefix + filename
 
