@@ -34,43 +34,75 @@ function B2Adapter(options) {
 }
 
 B2Adapter.prototype.createBucket = function() {
-    var promise
+    console.log('Called createBucket()')
 
     if (this._hasBucket) {
-        promise = this._b2Client.authorize()
+        console.log('Authorizing B2 Client')
+
+        return this._b2Client.authorize()
     } else {
-        promise = Promise.resolve().then(() => {
+        return Promise.resolve().then(() => {
+            console.log('Authorizing B2 Client')
+
             return this._b2Client.authorize()
         }).then(() => {
+            console.log('Getting list of buckets')
+
+            return this._b2Client.listBuckets()
+        }).then((response) => {
+            console.log(response.data)
+
+            var buckets = response.data.buckets
+
+            for (var i = 0; i < buckets.length; i++) {
+                var bucket = buckets[i]
+
+                if (bucket.bucketName == this._bucket) {
+                    console.log('Found matching Bucket: ' + bucket)
+                    return { data: bucket }
+                }
+            }
+
+            console.log('Creating B2 Bucket with name: ' + this._bucket)
+
             return this._b2Client.createBucket(this._bucket, 'allPublic')
         }).then((result) => {
-            var bucketId = result.bucketId
-            var downloadUrl = result.downloadUrl
+            var bucketId = result.data.bucketId
 
-            if (bucketId && downloadUrl) {
+            console.log('Created B2 Bucket with id: ' + bucketId)
+
+            if (bucketId) {
                 this._hasBucket = true
                 this._bucketId = bucketId
-                this._downloadUrl = downloadUrl
             } else {
                 throw 'Missing bucketId and downloadUrl in response'
             }
         })
     }
-
-    return promise
 }
 
 B2Adapter.prototype.createFile = function(filename, data, contentType) {
+    console.log('Called createFile()')
+
     return Promise.resolve().then(() => {
         return this.createBucket()
     }).then(() => {
+        console.log('Getting upload url for bucketId: ' + this._bucketId)
+
         return this._b2Client.getUploadUrl(this._bucketId)
     }).then((result) => {
+        var uploadUrl = result.data.uploadUrl
+        var authToken = result.data.authorizationToken
+
+        console.log('Received uploadUrl: ${uploadUrl} and authToken: ${authToken}')
+
         var name = this._bucketPrefix + filename
 
+        console.log('Uploading file with name: ' + name)
+
         return this._b2Client.uploadFile({
-            uploadUrl: result.uploadUrl,
-            uploadAuthToken: result.authorizationToken,
+            uploadUrl: uploadUrl,
+            uploadAuthToken: authToken,
             filename: name,
             mime: contentType,
             data: data
@@ -79,11 +111,14 @@ B2Adapter.prototype.createFile = function(filename, data, contentType) {
 }
 
 B2Adapter.prototype.deleteFile = function(filename) {
+    console.log('Called deleteFile()')
     var name = this._bucketPrefix + filename
 
     return Promise.resolve().then(() => {
         return this.createBucket()
     }).then(() => {
+        console.log('Getting list of file names for bucketId: ' + this._bucketId)
+
         return this._b2Client.listFileNames({
             bucketId: this._bucketId,
             maxFileCount: 1,
@@ -91,20 +126,24 @@ B2Adapter.prototype.deleteFile = function(filename) {
             prefix: prefix
         })
     }).then((results) => {
-        var files = results.files
+        var files = results.data.files
 
         for (var i = 0; i < files.length; i++) {
             var file = files[i]
             var _fileName = file.fileName
 
             if (_fileName == name) {
+                console.log('Found matching file with name: ' + name)
                 return file.fileId
             }
         }
     }).then((fileId) => {
         if (fileId == null) {
+            console.log('Did not find matching file with name: ' + name)
             return
         }
+
+        console.log('Deleting file with name: ' + name)
 
         return this._b2Client.deleteFileVersion({
             fileId: fileId,
@@ -114,11 +153,15 @@ B2Adapter.prototype.deleteFile = function(filename) {
 }
 
 B2Adapter.prototype.getFileData = function(filename) {
+    console.log('Called getFileData()')
+
     var name = this._bucketPrefix + filename
 
     return Promise.resolve().then(() => {
         return this.createBucket()
     }).then(() => {
+        console.log('Downloading file with name: ' + name)
+
         return this._b2Client.downloadFileByName({
             bucketName: this._bucket,
             fileName: name
